@@ -68,7 +68,7 @@ class BookService:
         """
         return self.repository.list_books()
 
-    def change_book_status(self, book_id: int, new_status: str) -> None:
+    def set_book_status(self, book_id: int, new_status: str) -> None:
         """
         Изменить статус книги
 
@@ -79,5 +79,5 @@ class BookService:
         if not book:
             raise ValueError(f"Не найдено книги с ID: {book_id}")
 
-        book.change_status(new_status)
+        book.set_status(new_status)
         self.repository.update_book(book)

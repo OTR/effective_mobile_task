@@ -77,7 +77,7 @@ class CliAdapter:
                 try:
                     book_id: int = int(input("Введите ID книги для обновления: ").strip())
                     new_status: str = input("Введите новый статус, доступные значения: available, borrowed: ").strip().lower()
-                    service.change_book_status(book_id, new_status)
+                    service.set_book_status(book_id, new_status)
                     print("Статус книги успешно обновлен")
                 except ValueError:
                     print("Неправильный ввод. Попробуйте ещё раз")
