@@ -11,7 +11,7 @@ class BaseBookRepository(ABC):
         pass
 
     @abstractmethod
-    def delete_book(self, book_id: int) -> None:
+    def delete_book_by_id(self, book_id: int) -> None:
         """Удалить книгу из репозитория по ID."""
         pass
 

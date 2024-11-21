@@ -42,7 +42,7 @@ class BookService:
         """
         if not self.repository.get_book_by_id(book_id):
             raise ValueError(f"Не найдена книга с ID: {book_id}")
-        self.repository.delete_book(book_id)
+        self.repository.delete_book_by_id(book_id)
 
     def search_books(
         self,
