@@ -1,10 +1,12 @@
 import sys
+from doctest import UnexpectedException
 from pathlib import Path
 from typing import Optional
 
 from src.application.service import BookService
 from src.domain.entity import Book
 from src.domain.repository import BaseBookRepository
+from src.exception.exceptions import PublishingYearMustBeNumericException
 from src.infra.repository import JsonBookRepository
 from src.infra.view import BookView
 
@@ -21,22 +23,26 @@ class CliAdapter:
         service = BookService(repository)
 
         while True:
-            BookView.display_menu()
-            choice: str = input("Введите пункт из меню: ").strip()
+            BookView.get_menu()
+            option: str = input("Введите пункт из меню: ").strip()
 
-            if choice == "1":
+            if option == "1":
                 title: str = input("Введите заголовок книги: ").strip()
                 author: str = input("Введите автора книги: ").strip()
                 try:
-                    year: int = int(input("Введите год выпуска: ").strip())
-                except ValueError:
-                    print("Год выпуска должен быть числом")
+                    input_year: str = input("Введите год выпуска: ").strip()
+                    year: int = int(input_year)
+                except ValueError as err:
+                    if len(err.args) > 0 and str(err.args[0]).startswith("invalid literal for int() with base 10:"):
+                        raise PublishingYearMustBeNumericException(given_year=input_year)
+                    else:
+                        raise UnexpectedBookException(err)
                     continue
 
                 book: Book = service.add_book(title, author, year)
                 print(f"Книга успешно добавлена, присвоен ID: {book.id}")
 
-            elif choice == "2":
+            elif option == "2":
                 try:
                     book_id: int = int(input("Введите ID книги для удаления: ").strip())
                     service.delete_book_by_id(book_id)
@@ -46,7 +52,7 @@ class CliAdapter:
                 except Exception as e:
                     print(e)
 
-            elif choice == "3":
+            elif option == "3":
                 title: str = input("Введите заголовок книги для поиска (или нажмите Enter чтобы пропустить): ").strip()
                 author: str = input("Введите автора книги для поиска (или нажмите Enter чтобы пропустить): ").strip()
                 year: str = input("Введите год выпуска для поиска (или нажмите Enter чтобы пропустить): ").strip()
@@ -64,7 +70,7 @@ class CliAdapter:
                 else:
                     print("Не найдено книг в хранилище по указанному поисковому запросу")
 
-            elif choice == "4":
+            elif option == "4":
                 books: list[Book] = service.list_books()
                 if books:
                     print("\n--- Доступные книги ---")
@@ -73,7 +79,7 @@ class CliAdapter:
                 else:
                     print("К сожалению в хранилище нет книг")
 
-            elif choice == "5":
+            elif option == "5":
                 try:
                     book_id: int = int(input("Введите ID книги для обновления: ").strip())
                     new_status: str = input("Введите новый статус, доступные значения: available, borrowed: ").strip().lower()
@@ -84,7 +90,7 @@ class CliAdapter:
                 except Exception as e:
                     print(e)
 
-            elif choice == "6":
+            elif option == "6":
                 print("Спасибо, что посетили нашу библиотеку!")
                 sys.exit()
 

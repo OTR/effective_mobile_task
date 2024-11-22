@@ -1,7 +1,7 @@
 class BookView:
 
     @staticmethod
-    def display_menu() -> str:
+    def get_menu() -> str:
         """
         Отобразить меню консольного приложения библиотеки книг
         """
