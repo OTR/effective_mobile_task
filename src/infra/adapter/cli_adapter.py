@@ -6,8 +6,8 @@ from src.application.service import BookService
 from src.domain.entity import Book
 from src.domain.repository import BaseBookRepository
 from src.exception import PublishingYearMustBeNumericException, UnexpectedBookException
-from src.exception.exceptions import IncorrectBookIdException
-from src.infra.adapter import MenuOption
+from src.exception.exceptions import IncorrectBookIdException, BaseBookException
+from src.infra.adapter.menu_option import MenuOption
 from src.infra.config.string_constants import *
 from src.infra.repository import JsonBookRepository
 
@@ -45,7 +45,7 @@ class CliAdapter:
             except KeyboardInterrupt as err:
                 print(EXIT_OPTION_MESSAGE)
                 sys.exit()
-            except BaseBookRepository as err:
+            except BaseBookException as err:
                 print(err)
                 print(TRY_AGAIN_MESSAGE)
                 continue
