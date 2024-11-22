@@ -1,102 +1,142 @@
 import sys
-from doctest import UnexpectedException
 from pathlib import Path
 from typing import Optional
 
 from src.application.service import BookService
 from src.domain.entity import Book
 from src.domain.repository import BaseBookRepository
-from src.exception.exceptions import PublishingYearMustBeNumericException
+from src.exception import PublishingYearMustBeNumericException, UnexpectedBookException
+from src.exception.exceptions import IncorrectBookIdException
+from src.infra.adapter import MenuOption
+from src.infra.config.string_constants import *
 from src.infra.repository import JsonBookRepository
-from src.infra.view import BookView
+
 
 class CliAdapter:
 
-    @staticmethod
-    def main():
-        """
-        Главный цикл консольного приложения библиотеки книг
-        """
+    def __init__(self):
+        """Инициализация зависимостей"""
         project_root: Path = Path(__file__).parent.parent.parent.parent
         file_path: str = str(project_root / '.data' / 'books.json')
         repository: BaseBookRepository = JsonBookRepository(file_path=file_path)
-        service = BookService(repository)
+        self.service = BookService(repository)
 
+    def main(self) -> None:
+        """Главный цикл консольного приложения библиотеки книг"""
         while True:
-            BookView.get_menu()
-            option: str = input("Введите пункт из меню: ").strip()
-
-            if option == "1":
-                title: str = input("Введите заголовок книги: ").strip()
-                author: str = input("Введите автора книги: ").strip()
-                try:
-                    input_year: str = input("Введите год выпуска: ").strip()
-                    year: int = int(input_year)
-                except ValueError as err:
-                    if len(err.args) > 0 and str(err.args[0]).startswith("invalid literal for int() with base 10:"):
-                        raise PublishingYearMustBeNumericException(given_year=input_year)
-                    else:
-                        raise UnexpectedBookException(err)
-                    continue
-
-                book: Book = service.add_book(title, author, year)
-                print(f"Книга успешно добавлена, присвоен ID: {book.id}")
-
-            elif option == "2":
-                try:
-                    book_id: int = int(input("Введите ID книги для удаления: ").strip())
-                    service.delete_book_by_id(book_id)
-                    print("Книга успешно удалена")
-                except ValueError:
-                    print("Некорректный ID, попробуйте ещё раз")
-                except Exception as e:
-                    print(e)
-
-            elif option == "3":
-                title: str = input("Введите заголовок книги для поиска (или нажмите Enter чтобы пропустить): ").strip()
-                author: str = input("Введите автора книги для поиска (или нажмите Enter чтобы пропустить): ").strip()
-                year: str = input("Введите год выпуска для поиска (или нажмите Enter чтобы пропустить): ").strip()
-                try:
-                    year: Optional[int] = int(year) if year else None
-                except ValueError:
-                    print("Год выпуска должен быть числом. Попробуйте ещё раз")
-                    continue
-
-                books: list[Book] = service.search_books(title, author, year)
-                if books:
-                    print("\n--- Результат поиска ---")
-                    for book in books:
-                        print(book)
-                else:
-                    print("Не найдено книг в хранилище по указанному поисковому запросу")
-
-            elif option == "4":
-                books: list[Book] = service.list_books()
-                if books:
-                    print("\n--- Доступные книги ---")
-                    for book in books:
-                        print(book)
-                else:
-                    print("К сожалению в хранилище нет книг")
-
-            elif option == "5":
-                try:
-                    book_id: int = int(input("Введите ID книги для обновления: ").strip())
-                    new_status: str = input("Введите новый статус, доступные значения: available, borrowed: ").strip().lower()
-                    service.set_book_status(book_id, new_status)
-                    print("Статус книги успешно обновлен")
-                except ValueError:
-                    print("Неправильный ввод. Попробуйте ещё раз")
-                except Exception as e:
-                    print(e)
-
-            elif option == "6":
-                print("Спасибо, что посетили нашу библиотеку!")
+            print(BOOK_MENU)
+            option: str = input(INPUT_MENU_OPTION).strip()
+            try:
+                match MenuOption(option):
+                    case MenuOption.ADD_BOOK:
+                        self._handle_add_book()
+                    case MenuOption.DELETE_BOOK:
+                        self._handle_delete_book()
+                    case MenuOption.SEARCH_BOOK:
+                        self._handle_search_books()
+                    case MenuOption.LIST_BOOKS:
+                        self._handle_list_books()
+                    case MenuOption.SET_STATUS:
+                        self._handle_set_status()
+                    case MenuOption.EXIT:
+                        CliAdapter._handle_exit()
+                    case _:
+                        CliAdapter._handle_invalid_option()
+            except KeyboardInterrupt as err:
+                print(EXIT_OPTION_MESSAGE)
+                sys.exit()
+            except BaseBookRepository as err:
+                print(err)
+                print(TRY_AGAIN_MESSAGE)
+                continue
+            except Exception as err:
+                print(UNEXPECTED_ERROR_HAPPENED + str(err))
                 sys.exit()
 
+    def _handle_add_book(self) -> None:
+        """Обработка пункта меню: 1. Добавить книгу"""
+        title: str = input(INPUT_BOOK_TITLE).strip()
+        author: str = input(INPUT_BOOK_AUTHOR).strip()
+        input_year: str = EMPTY_STRING
+        try:
+            input_year = input(INPUT_PUBLISHING_YEAR).strip()
+            year: int = int(input_year)
+        except ValueError as err:
+            if NUMBER_FORMAT_EXCEPTION in str(err):
+                raise PublishingYearMustBeNumericException(given_year=input_year)
             else:
-                print("Некорректный ввод пункта. Выберите число от 1 до 6 включительно.")
+                raise UnexpectedBookException(err)
 
+        book: Book = self.service.add_book(title, author, year)
+        print(BOOK_SUCCESSFULLY_ADDED + str(book.id))
 
-if __name__ == "__main__":
-    CliAdapter.main()
+    def _handle_delete_book(self) -> None:
+        """Обработка пункта меню: 2. Удалить книгу"""
+        input_book_id: str = EMPTY_STRING
+        try:
+            input_book_id = input(INPUT_ID_FOR_DELETION).strip()
+            book_id: int = int(input_book_id)
+            self.service.delete_book_by_id(book_id)
+            print(BOOK_SUCCESSFULLY_DELETED)
+        except ValueError as err:
+            if NUMBER_FORMAT_EXCEPTION in str(err):
+                raise IncorrectBookIdException(given_id=input_book_id)
+            else:
+                raise UnexpectedBookException(err)
+
+    def _handle_search_books(self) -> None:
+        """Обработка пункта меню: 3. Найти книгу"""
+        title: str = input(INPUT_TITLE_OR_SKIP).strip()
+        author: str = input(INPUT_AUTHOR_OR_SKIP).strip()
+        input_year: str = input(INPUT_PUBLISHING_YEAR_OR_SKIP).strip()
+        try:
+            year: Optional[int] = int(input_year) if input_year else EMPTY_STRING
+        except ValueError as err:
+            if NUMBER_FORMAT_EXCEPTION in str(err):
+                raise PublishingYearMustBeNumericException(given_year=input_year)
+            else:
+                raise UnexpectedBookException(err)
+
+        books: list[Book] = self.service.search_books(title, author, year)
+        if books:
+            print(SEARCH_RESULT_TITLE)
+            for book in books:
+                print(book)
+        else:
+            print(NO_BOOKS_FOUND_MESSAGE)
+
+    def _handle_list_books(self) -> None:
+        """Обработка пункта меню: 4. Отобразить все книги"""
+        books: list[Book] = self.service.list_books()
+        if books:
+            print(LOOKUP_RESULT_TITLE)
+            for book in books:
+                print(book)
+        else:
+            print(NO_BOOKS_FOUND_MESSAGE)
+
+    def _handle_set_status(self) -> None:
+        """"Обработка пункта меню: 5. Изменить статус книги"""
+        input_book_id: str = EMPTY_STRING
+        try:
+            input_book_id = input(INPUT_ID_FOR_UPDATE).strip()
+            book_id: int = int(input_book_id)
+            new_status: str = input(INPUT_NEW_BOOK_STATUS).strip().lower()
+            self.service.set_book_status(book_id, new_status)
+            print(STATUS_SUCCESSFULLY_UPDATED)
+        except ValueError as err:
+            if NUMBER_FORMAT_EXCEPTION in str(err):
+                raise IncorrectBookIdException(given_id=input_book_id)
+            else:
+                raise UnexpectedBookException(err)
+
+    @staticmethod
+    def _handle_exit():
+        """Обработка опции `Выход` в меню"""
+        print(EXIT_OPTION_MESSAGE)
+        sys.exit()
+
+    @staticmethod
+    def _handle_invalid_option():
+        """Обработка некорректного ввода пункта меню"""
+        print(INCORRECT_MAIN_MENU_OPTION_MESSAGE)

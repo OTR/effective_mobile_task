@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from src.exception.exceptions import IncorrectBookStatusException
+
 
 @dataclass
 class Book:
@@ -11,7 +13,7 @@ class Book:
 
     def set_status(self, new_status: str) -> None:
         if new_status not in {"available", "borrowed"}:
-            raise ValueError("Статус должен быть 'available' или 'borrowed'.")
+            raise IncorrectBookStatusException()
         self.status = new_status
 
     def __str__(self) -> str:
