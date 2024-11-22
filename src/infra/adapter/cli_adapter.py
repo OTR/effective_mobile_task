@@ -24,9 +24,10 @@ class CliAdapter:
     def main(self) -> None:
         """Главный цикл консольного приложения библиотеки книг"""
         while True:
+            print("_" * 80)
             print(BOOK_MENU)
-            option: str = input(INPUT_MENU_OPTION).strip()
             try:
+                option: str = input(INPUT_MENU_OPTION).strip()
                 match MenuOption(option):
                     case MenuOption.ADD_BOOK:
                         self._handle_add_book()
@@ -40,18 +41,26 @@ class CliAdapter:
                         self._handle_set_status()
                     case MenuOption.EXIT:
                         CliAdapter._handle_exit()
+                        break
                     case _:
                         CliAdapter._handle_invalid_option()
-            except KeyboardInterrupt as err:
+            except KeyboardInterrupt:
                 print(EXIT_OPTION_MESSAGE)
-                sys.exit()
+                break
             except BaseBookException as err:
                 print(err)
                 print(TRY_AGAIN_MESSAGE)
                 continue
+            except ValueError as err:
+                if EMPTY_MAIN_MENU_INPUT in str(err):
+                    print(INCORRECT_MAIN_MENU_OPTION_MESSAGE + " " + EMPTY_MAIN_MENU_MESSAGE)
+                    continue
+                else:
+                    print(INCORRECT_MAIN_MENU_OPTION_MESSAGE + " " + str(err))
+                    continue
             except Exception as err:
                 print(UNEXPECTED_ERROR_HAPPENED + str(err))
-                sys.exit()
+                sys.exit(1)
 
     def _handle_add_book(self) -> None:
         """Обработка пункта меню: 1. Добавить книгу"""
