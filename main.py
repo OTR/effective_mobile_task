@@ -1,5 +1,8 @@
+from src.infra.adapter import CliAdapter
+
+
 def main():
-    print('Hello')
+    CliAdapter.main()
 
 if __name__ == '__main__':
     main()

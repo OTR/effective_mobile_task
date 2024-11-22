@@ -15,8 +15,8 @@ class CliAdapter:
         """
         Главный цикл консольного приложения библиотеки книг
         """
-        project_root: Path = Path(__file__).parent
-        file_path: str = str(project_root / 'books.json')
+        project_root: Path = Path(__file__).parent.parent.parent.parent
+        file_path: str = str(project_root / '.data' / 'books.json')
         repository: BaseBookRepository = JsonBookRepository(file_path=file_path)
         service = BookService(repository)
 
