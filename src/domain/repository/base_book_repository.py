@@ -5,6 +5,7 @@ from src.domain.entity import Book
 
 
 class BaseBookRepository(ABC):
+
     @abstractmethod
     def add_book(self, book: Book) -> None:
         """Добавить книгу в репозиторий"""

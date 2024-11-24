@@ -77,12 +77,13 @@ class JsonBookRepository(BaseBookRepository):
         year: Optional[int] = None
     ) -> List[Book]:
         """
-        Найти книги в JSON файле по заданному критерию поиска
+        Найти книги в JSON файле по заданному критерию поиска. Искомое слово содержится в заголовке книге,
+        либо искомое слово содержится в авторе книги либо год эквивалентен указанному
 
-        :param title:
-        :param author:
-        :param year:
-        :return:
+        :param title: Заголовок
+        :param author: Автор
+        :param year: Год издания
+        :return: список книг подпадающих под поисковый критерий
         """
         books = self._read_books()
         result = books

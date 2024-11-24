@@ -34,3 +34,10 @@ class IncorrectBookStatusException(BaseBookException):
     def __init__(self, given_status: str):
         msg = f"Некорректный статус для книги. Статус должен быть 'available' или 'borrowed'. Дано: `{given_status}`"
         super().__init__(msg)
+
+class BookByIdNotFoundException(BaseBookException):
+    """Исключение для ситуации когда не найдена книга в хранилище по ID"""
+
+    def __init__(self, desired_id: int):
+        msg = f"Не найдена книга с ID: {desired_id}"
+        super().__init__(msg)
