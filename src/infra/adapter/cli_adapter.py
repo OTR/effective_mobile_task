@@ -1,15 +1,12 @@
 import sys
-from pathlib import Path
 from typing import Optional
 
 from src.application.service import BookService
 from src.domain.entity import Book
-from src.domain.repository import BaseBookRepository
 from src.exception import PublishingYearMustBeNumericError, UnexpectedBookError
 from src.exception.exceptions import BaseBookError, IncorrectBookIdError
 from src.infra.adapter.menu_option import MenuOption
 from src.infra.config.string_constants import *  # noqa
-from src.infra.repository import JsonBookRepository
 
 
 class CliAdapter:
@@ -17,12 +14,14 @@ class CliAdapter:
     _EXIT_STATUS_OK: int = 0
     _EXIT_STATUS_ERROR: int = 1
 
-    def __init__(self):
-        """Инициализация зависимостей."""
-        project_root: Path = Path(__file__).parent.parent.parent.parent
-        file_path: str = str(project_root / '.data' / 'books.json')
-        repository: BaseBookRepository = JsonBookRepository(file_path=file_path)
-        self.service = BookService(repository)
+    def __init__(self, book_service: BookService):
+        """
+        Инициализация зависимостей.
+
+        Args:
+            book_service: BookService сервис для работы с хранилищем книг
+        """
+        self.service: BookService = book_service
 
     def main(self) -> None:
         """Главный цикл консольного приложения библиотеки книг."""
