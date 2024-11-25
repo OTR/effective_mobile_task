@@ -1,4 +1,6 @@
 import json
+import os
+from copy import deepcopy
 from typing import List, Optional
 
 from src.domain.entity import Book
@@ -17,6 +19,7 @@ class JsonBookRepository(BaseBookRepository):
         """
         self.file_path: str = file_path
         self._ensure_file_exists()
+        self.books: list[Book] = self._read_books()
 
     def add_book(self, book: Book) -> None:
         """
@@ -25,9 +28,8 @@ class JsonBookRepository(BaseBookRepository):
         Args:
             book: Book сущность Book для сохранения в JSON файл
         """
-        books: list[Book] = self._read_books()
-        books.append(book)
-        self._write_books(books)
+        self.books.append(book)
+        self._write_books(self.books)
 
     def delete_book_by_id(self, book_id: int) -> None:
         """
@@ -36,9 +38,8 @@ class JsonBookRepository(BaseBookRepository):
         Args:
             book_id: int ID книги для удаления
         """
-        books: list[Book] = self._read_books()
-        books = [book for book in books if book.id != book_id]
-        self._write_books(books)
+        self.books = [book for book in self.books if book.id != book_id]
+        self._write_books(self.books)
 
     def get_book_by_id(self, book_id: int) -> Optional[Book]:
         """
@@ -50,8 +51,7 @@ class JsonBookRepository(BaseBookRepository):
         Returns:
             Optional[Book] найденная книга по ID или None если не найдена
         """
-        books: list[Book] = self._read_books()
-        for book in books:
+        for book in self.books:
             if book.id == book_id:
                 return book
         return None
@@ -76,8 +76,7 @@ class JsonBookRepository(BaseBookRepository):
         Returns:
             list[Book]: список книг подпадающих под поисковый критерий
         """
-        books: list[Book] = self._read_books()
-        result = books
+        result: list[Book] = deepcopy(self.books)
         if title:
             result = [book for book in result if title.lower() in book.title.lower()]
         if author:
@@ -93,7 +92,7 @@ class JsonBookRepository(BaseBookRepository):
         Returns:
             list[Book]: список книг или пустой список
         """
-        return self._read_books()
+        return self.books
 
     def update_book(self, book: Book) -> None:
         """
@@ -102,12 +101,11 @@ class JsonBookRepository(BaseBookRepository):
         Args:
             book: Book сущность Book
         """
-        books: list[Book] = self._read_books()
-        for index, existing_book in enumerate(books):
+        for index, existing_book in enumerate(self.books):
             if existing_book.id == book.id:
-                books[index] = book
+                self.books[index] = book
                 break
-        self._write_books(books)
+        self._write_books(self.books)
 
     def _write_books(self, books: List[Book]) -> None:
         """
