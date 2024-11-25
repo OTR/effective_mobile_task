@@ -8,17 +8,14 @@ from src.domain.repository import BaseBookRepository
 from src.exception import PublishingYearMustBeNumericError, UnexpectedBookError
 from src.exception.exceptions import BaseBookError, IncorrectBookIdError
 from src.infra.adapter.menu_option import MenuOption
-from src.infra.config.string_constants import (
-    BOOK_MENU, INPUT_MENU_OPTION, EXIT_OPTION_MESSAGE, TRY_AGAIN_MESSAGE, EMPTY_MAIN_MENU_INPUT,
-    INCORRECT_MAIN_MENU_OPTION_MESSAGE, EMPTY_MAIN_MENU_MESSAGE, UNEXPECTED_ERROR_HAPPENED, INPUT_BOOK_TITLE,
-    INPUT_BOOK_AUTHOR, EMPTY_STRING, INPUT_PUBLISHING_YEAR, NUMBER_FORMAT_EXCEPTION, BOOK_SUCCESSFULLY_ADDED,
-    INPUT_ID_FOR_DELETION, BOOK_SUCCESSFULLY_DELETED, INPUT_TITLE_OR_SKIP, INPUT_AUTHOR_OR_SKIP,
-    INPUT_PUBLISHING_YEAR_OR_SKIP, SEARCH_RESULT_TITLE, NO_BOOKS_FOUND_MESSAGE, LOOKUP_RESULT_TITLE,
-    INPUT_ID_FOR_UPDATE, INPUT_NEW_BOOK_STATUS, STATUS_SUCCESSFULLY_UPDATED)
+from src.infra.config.string_constants import *  # noqa
 from src.infra.repository import JsonBookRepository
 
 
 class CliAdapter:
+    _HORIZONTAL_LINE: str  = '_' * 80
+    _EXIT_STATUS_OK: int = 0
+    _EXIT_STATUS_ERROR: int = 1
 
     def __init__(self):
         """Инициализация зависимостей."""
@@ -30,7 +27,7 @@ class CliAdapter:
     def main(self) -> None:
         """Главный цикл консольного приложения библиотеки книг."""
         while True:
-            print('_' * 80)
+            print(self._HORIZONTAL_LINE)
             print(BOOK_MENU)
             try:
                 option: str = input(INPUT_MENU_OPTION).strip()
@@ -65,7 +62,7 @@ class CliAdapter:
                 continue
             except Exception as err:
                 print(UNEXPECTED_ERROR_HAPPENED + str(err))
-                sys.exit(1)
+                sys.exit(self._EXIT_STATUS_ERROR)
 
     def _handle_add_book(self) -> None:
         """Обработка пункта меню: 1. Добавить книгу.
@@ -171,7 +168,7 @@ class CliAdapter:
     def _handle_exit() -> None:
         """Обработка опции `Выход` в меню."""
         print(EXIT_OPTION_MESSAGE)
-        sys.exit()
+        sys.exit(CliAdapter._EXIT_STATUS_OK)
 
     @staticmethod
     def _handle_invalid_option() -> None:
