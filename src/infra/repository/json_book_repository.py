@@ -10,42 +10,20 @@ class JsonBookRepository(BaseBookRepository):
 
     def __init__(self, file_path: str):
         """
-        Создать репозиторий, хранящий книги в JSON файлах
-        :param file_path: путь к JSON файлу для хранения книг
+        Создать репозиторий, хранящий книги в JSON файлах.
+
+        Args:
+            file_path: str путь к JSON файлу для хранения книг
         """
         self.file_path = file_path
         self._ensure_file_exists()
 
-    def _ensure_file_exists(self) -> None:
-        """
-        Проверить существует ли файл по заданному пути, если нет - то создать пустой JSON файл.
-        """
-        try:
-            with open(self.file_path, "w") as file1:
-                json.dump([], file1)
-        except FileExistsError:
-            pass
-
-    def _read_books(self) -> List[Book]:
-        """
-        Извлечь все книги из JSON файла
-        :return: список сущностей Book или пустой список
-        """
-        with open(self.file_path, "r") as file1:
-            data = json.load(file1)
-        return [Book(**item) for item in data]
-
-    def _write_books(self, books: List[Book]) -> None:
-        """
-        Сохранить все книги в JSON файл
-        :param books: список сущностей Book
-        """
-        with open(self.file_path, "w") as file1:
-            json.dump([book.__dict__ for book in books], file1, indent=self._DEFAULT_INDENT)
-
     def add_book(self, book: Book) -> None:
         """
-        :param book: сущность Book для сохранения в JSON файл
+        Добавить книгу в хранилище.
+
+        Args:
+            book: Book сущность Book для сохранения в JSON файл
         """
         books = self._read_books()
         books.append(book)
@@ -53,7 +31,10 @@ class JsonBookRepository(BaseBookRepository):
 
     def delete_book_by_id(self, book_id: int) -> None:
         """
-        :param book_id: ID книги для удаления
+        Удалить книгу из хранилища по ID.
+
+        Args:
+            book_id: int ID книги для удаления
         """
         books = self._read_books()
         books = [book for book in books if book.id != book_id]
@@ -61,8 +42,13 @@ class JsonBookRepository(BaseBookRepository):
 
     def get_book_by_id(self, book_id: int) -> Optional[Book]:
         """
-        Получить книгу из JSON файла по ID
-        :param book_id: ID книги для удаления
+        Получить книгу из JSON файла по ID.
+
+        Args:
+            book_id: int ID книги для удаления
+
+        Returns:
+            Optional[Book] найденная книга по ID или None если не найдена
         """
         books = self._read_books()
         for book in books:
@@ -74,16 +60,21 @@ class JsonBookRepository(BaseBookRepository):
         self,
         title: Optional[str] = None,
         author: Optional[str] = None,
-        year: Optional[int] = None
+        year: Optional[int] = None,
     ) -> List[Book]:
         """
-        Найти книги в JSON файле по заданному критерию поиска. Искомое слово содержится в заголовке книге,
+        Найти книги в JSON файле по заданному критерию поиска.
+
+        Искомое слово содержится в заголовке книге,
         либо искомое слово содержится в авторе книги либо год эквивалентен указанному
 
-        :param title: Заголовок
-        :param author: Автор
-        :param year: Год издания
-        :return: список книг подпадающих под поисковый критерий
+        Args:
+            title: Optional[str] Заголовок
+            author: Optional[str] Автор
+            year: Optional[int] Год издания
+
+        Returns:
+            list[Book]: список книг подпадающих под поисковый критерий
         """
         books = self._read_books()
         result = books
@@ -97,19 +88,52 @@ class JsonBookRepository(BaseBookRepository):
 
     def list_books(self) -> List[Book]:
         """
-        Загрузить все имеющиеся в JSON файле книги
-        :return: список книг или пустой список
+        Загрузить все имеющиеся в JSON файле книги.
+
+        Returns:
+            list[Book]: список книг или пустой список
         """
         return self._read_books()
 
     def update_book(self, book: Book) -> None:
         """
-        Обновить сущность Book в JSON хранилище книг
-        :param book: сущность Book
+        Обновить сущность Book в JSON хранилище книг.
+
+        Args:
+            book: Book сущность Book
         """
         books = self._read_books()
-        for i, existing_book in enumerate(books):
+        for index, existing_book in enumerate(books):
             if existing_book.id == book.id:
-                books[i] = book
+                books[index] = book
                 break
         self._write_books(books)
+
+    def _write_books(self, books: List[Book]) -> None:
+        """
+        Сохранить все книги в JSON файл.
+
+        Args:
+            books: list[Book] список сущностей Book
+        """
+        with open(self.file_path, 'w') as file1:
+            json.dump([book.__dict__ for book in books], file1, indent=self._DEFAULT_INDENT)
+
+    def _ensure_file_exists(self) -> None:
+        """Проверить существует ли файл по заданному пути, если нет - то создать пустой JSON файл."""
+        try:
+            with open(self.file_path, 'w') as file1:
+                json.dump([], file1)
+        except FileExistsError:
+            pass  # noqa: WPS420
+
+    def _read_books(self) -> List[Book]:
+        """
+        Извлечь все книги из JSON файла.
+
+        Returns:
+            list[Book]: список сущностей Book или пустой список
+        """
+        with open(self.file_path, 'r') as file1:
+            storage_data = json.load(file1)
+        return [Book(**book_item) for book_item in storage_data]

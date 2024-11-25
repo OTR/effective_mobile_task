@@ -6,25 +6,31 @@ from src.application.service import BookService
 from src.domain.entity import Book
 from src.domain.repository import BaseBookRepository
 from src.exception import PublishingYearMustBeNumericError, UnexpectedBookError
-from src.exception.exceptions import IncorrectBookIdError, BaseBookError
+from src.exception.exceptions import BaseBookError, IncorrectBookIdError
 from src.infra.adapter.menu_option import MenuOption
-from src.infra.config.string_constants import *
+from src.infra.config.string_constants import (
+    BOOK_MENU, INPUT_MENU_OPTION, EXIT_OPTION_MESSAGE, TRY_AGAIN_MESSAGE, EMPTY_MAIN_MENU_INPUT,
+    INCORRECT_MAIN_MENU_OPTION_MESSAGE, EMPTY_MAIN_MENU_MESSAGE, UNEXPECTED_ERROR_HAPPENED, INPUT_BOOK_TITLE,
+    INPUT_BOOK_AUTHOR, EMPTY_STRING, INPUT_PUBLISHING_YEAR, NUMBER_FORMAT_EXCEPTION, BOOK_SUCCESSFULLY_ADDED,
+    INPUT_ID_FOR_DELETION, BOOK_SUCCESSFULLY_DELETED, INPUT_TITLE_OR_SKIP, INPUT_AUTHOR_OR_SKIP,
+    INPUT_PUBLISHING_YEAR_OR_SKIP, SEARCH_RESULT_TITLE, NO_BOOKS_FOUND_MESSAGE, LOOKUP_RESULT_TITLE,
+    INPUT_ID_FOR_UPDATE, INPUT_NEW_BOOK_STATUS, STATUS_SUCCESSFULLY_UPDATED)
 from src.infra.repository import JsonBookRepository
 
 
 class CliAdapter:
 
     def __init__(self):
-        """Инициализация зависимостей"""
+        """Инициализация зависимостей."""
         project_root: Path = Path(__file__).parent.parent.parent.parent
         file_path: str = str(project_root / '.data' / 'books.json')
         repository: BaseBookRepository = JsonBookRepository(file_path=file_path)
         self.service = BookService(repository)
 
     def main(self) -> None:
-        """Главный цикл консольного приложения библиотеки книг"""
+        """Главный цикл консольного приложения библиотеки книг."""
         while True:
-            print("_" * 80)
+            print('_' * 80)
             print(BOOK_MENU)
             try:
                 option: str = input(INPUT_MENU_OPTION).strip()
@@ -40,10 +46,10 @@ class CliAdapter:
                     case MenuOption.SET_STATUS:
                         self._handle_set_status()
                     case MenuOption.EXIT:
-                        CliAdapter._handle_exit()
+                        self._handle_exit()
                         break
                     case _:
-                        CliAdapter._handle_invalid_option()
+                        self._handle_invalid_option()
             except KeyboardInterrupt:
                 print(EXIT_OPTION_MESSAGE)
                 break
@@ -53,17 +59,21 @@ class CliAdapter:
                 continue
             except ValueError as err:
                 if EMPTY_MAIN_MENU_INPUT in str(err):
-                    print(INCORRECT_MAIN_MENU_OPTION_MESSAGE + " " + EMPTY_MAIN_MENU_MESSAGE)
-                    continue
+                    print(INCORRECT_MAIN_MENU_OPTION_MESSAGE + ' ' + EMPTY_MAIN_MENU_MESSAGE)
                 else:
-                    print(INCORRECT_MAIN_MENU_OPTION_MESSAGE + " " + str(err))
-                    continue
+                    print(INCORRECT_MAIN_MENU_OPTION_MESSAGE + ' ' + str(err))
+                continue
             except Exception as err:
                 print(UNEXPECTED_ERROR_HAPPENED + str(err))
                 sys.exit(1)
 
     def _handle_add_book(self) -> None:
-        """Обработка пункта меню: 1. Добавить книгу"""
+        """Обработка пункта меню: 1. Добавить книгу.
+
+        Raises:
+            PublishingYearMustBeNumericError: когда год выпуска не является числом
+            UnexpectedBookError: Неожиданная ошибка
+        """
         title: str = input(INPUT_BOOK_TITLE).strip()
         author: str = input(INPUT_BOOK_AUTHOR).strip()
         input_year: str = EMPTY_STRING
@@ -73,14 +83,20 @@ class CliAdapter:
         except ValueError as err:
             if NUMBER_FORMAT_EXCEPTION in str(err):
                 raise PublishingYearMustBeNumericError(given_year=input_year)
-            else:
-                raise UnexpectedBookError(err)
+
+            raise UnexpectedBookError(err)
 
         book: Book = self.service.add_book(title, author, year)
         print(BOOK_SUCCESSFULLY_ADDED + str(book.id))
 
     def _handle_delete_book(self) -> None:
-        """Обработка пункта меню: 2. Удалить книгу"""
+        """
+        Обработка пункта меню: 2. Удалить книгу.
+
+        Raises:
+            IncorrectBookIdError: Когда передан ID не находящийся в хранилище
+            UnexpectedBookError: Неожиданная ошибка
+        """
         input_book_id: str = EMPTY_STRING
         try:
             input_book_id = input(INPUT_ID_FOR_DELETION).strip()
@@ -90,11 +106,17 @@ class CliAdapter:
         except ValueError as err:
             if NUMBER_FORMAT_EXCEPTION in str(err):
                 raise IncorrectBookIdError(given_id=input_book_id)
-            else:
-                raise UnexpectedBookError(err)
+
+            raise UnexpectedBookError(err)
 
     def _handle_search_books(self) -> None:
-        """Обработка пункта меню: 3. Найти книгу"""
+        """
+        Обработка пункта меню: 3. Найти книгу.
+
+        Raises:
+            PublishingYearMustBeNumericError: год публикации книги не число
+            UnexpectedBookError: Неожиданная ошибка
+        """
         title: str = input(INPUT_TITLE_OR_SKIP).strip()
         author: str = input(INPUT_AUTHOR_OR_SKIP).strip()
         input_year: str = input(INPUT_PUBLISHING_YEAR_OR_SKIP).strip()
@@ -103,8 +125,8 @@ class CliAdapter:
         except ValueError as err:
             if NUMBER_FORMAT_EXCEPTION in str(err):
                 raise PublishingYearMustBeNumericError(given_year=input_year)
-            else:
-                raise UnexpectedBookError(err)
+
+            raise UnexpectedBookError(err)
 
         books: list[Book] = self.service.search_books(title, author, year)
         if books:
@@ -115,7 +137,7 @@ class CliAdapter:
             print(NO_BOOKS_FOUND_MESSAGE)
 
     def _handle_list_books(self) -> None:
-        """Обработка пункта меню: 4. Отобразить все книги"""
+        """Обработка пункта меню: 4. Отобразить все книги."""
         books: list[Book] = self.service.list_books()
         if books:
             print(LOOKUP_RESULT_TITLE)
@@ -125,7 +147,13 @@ class CliAdapter:
             print(NO_BOOKS_FOUND_MESSAGE)
 
     def _handle_set_status(self) -> None:
-        """"Обработка пункта меню: 5. Изменить статус книги"""
+        """"
+        Обработка пункта меню: 5. Изменить статус книги.
+
+        Raises:
+            IncorrectBookIdError: Введенный ID книги не является числом
+            UnexpectedBookError: Неожиданная ошибка
+        """
         input_book_id: str = EMPTY_STRING
         try:
             input_book_id = input(INPUT_ID_FOR_UPDATE).strip()
@@ -140,12 +168,12 @@ class CliAdapter:
                 raise UnexpectedBookError(err)
 
     @staticmethod
-    def _handle_exit():
-        """Обработка опции `Выход` в меню"""
+    def _handle_exit() -> None:
+        """Обработка опции `Выход` в меню."""
         print(EXIT_OPTION_MESSAGE)
         sys.exit()
 
     @staticmethod
-    def _handle_invalid_option():
-        """Обработка некорректного ввода пункта меню"""
+    def _handle_invalid_option() -> None:
+        """Обработка некорректного ввода пункта меню."""
         print(INCORRECT_MAIN_MENU_OPTION_MESSAGE)
