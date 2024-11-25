@@ -50,6 +50,8 @@ class BaseBookRepository(ABC):
             title: Optional[str] заголовок книги для поиска
             author: Optional[str] автор книги для поиска
             year: Optional[int] кон издания книги для поиска
+
+        Returns: List[Book] список книг из репозитория соответствующим поисковому запросу
         """
 
     @abstractmethod

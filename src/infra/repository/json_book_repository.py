@@ -15,7 +15,7 @@ class JsonBookRepository(BaseBookRepository):
         Args:
             file_path: str путь к JSON файлу для хранения книг
         """
-        self.file_path = file_path
+        self.file_path: str = file_path
         self._ensure_file_exists()
 
     def add_book(self, book: Book) -> None:
@@ -25,7 +25,7 @@ class JsonBookRepository(BaseBookRepository):
         Args:
             book: Book сущность Book для сохранения в JSON файл
         """
-        books = self._read_books()
+        books: list[Book] = self._read_books()
         books.append(book)
         self._write_books(books)
 
@@ -36,7 +36,7 @@ class JsonBookRepository(BaseBookRepository):
         Args:
             book_id: int ID книги для удаления
         """
-        books = self._read_books()
+        books: list[Book] = self._read_books()
         books = [book for book in books if book.id != book_id]
         self._write_books(books)
 
@@ -50,7 +50,7 @@ class JsonBookRepository(BaseBookRepository):
         Returns:
             Optional[Book] найденная книга по ID или None если не найдена
         """
-        books = self._read_books()
+        books: list[Book] = self._read_books()
         for book in books:
             if book.id == book_id:
                 return book
@@ -76,7 +76,7 @@ class JsonBookRepository(BaseBookRepository):
         Returns:
             list[Book]: список книг подпадающих под поисковый критерий
         """
-        books = self._read_books()
+        books: list[Book] = self._read_books()
         result = books
         if title:
             result = [book for book in result if title.lower() in book.title.lower()]
@@ -102,7 +102,7 @@ class JsonBookRepository(BaseBookRepository):
         Args:
             book: Book сущность Book
         """
-        books = self._read_books()
+        books: list[Book] = self._read_books()
         for index, existing_book in enumerate(books):
             if existing_book.id == book.id:
                 books[index] = book
@@ -135,5 +135,5 @@ class JsonBookRepository(BaseBookRepository):
             list[Book]: список сущностей Book или пустой список
         """
         with open(self.file_path, 'r') as file1:
-            storage_data = json.load(file1)
+            storage_data: list[dict] = json.load(file1)
         return [Book(**book_item) for book_item in storage_data]
