@@ -9,7 +9,10 @@ class BookService:
 
     def __init__(self, repository: BaseBookRepository):
         """
-        Создать сервис библиотеки книг с зависимостью абстрактного репозитория
+        Создать сервис библиотеки книг с зависимостью абстрактного репозитория.
+
+        Args:
+            repository: BaseBookRepository dependency that stores books in file
         """
         self.repository = repository
 
@@ -17,29 +20,30 @@ class BookService:
         """
         Добавить книгу в библиотеку.
 
-        :param title: Заголовок
-        :param author: Автор
-        :param year: Год издания
-        :return: экземпляр сущности книга
+        Args:
+            title: Заголовок
+            author: Автор
+            year: Год издания
+
+        Returns:
+            Book: экземпляр сущности книга
         """
         books: list[Book] = self.repository.list_books()
-        new_id: int = BookService._generate_unique_id(books)
+        new_id: int = self._generate_unique_id(books)
 
         new_book = Book(id=new_id, title=title, author=author, year=year)
         self.repository.add_book(new_book)
         return new_book
 
-    @staticmethod
-    def _generate_unique_id(books: list[Book]) -> int:
-        """Сгенерировать новый уникальный ID на основе уже существующих книг в репозитории"""
-        new_id = max((book.id for book in books), default=0) + 1
-        return new_id
-
     def delete_book_by_id(self, book_id: int) -> None:
         """
         Удалить книгу по ID.
 
-        :param book_id: ID книги
+        Args:
+             book_id: ID книги
+
+        Raises:
+            BookByIdNotFoundException: если не найдено книги с указанным ID
         """
         if not self.repository.get_book_by_id(book_id):
             raise BookByIdNotFoundException(desired_id=book_id)
@@ -49,32 +53,40 @@ class BookService:
         self,
         title: Optional[str] = None,
         author: Optional[str] = None,
-        year: Optional[int] = None
+        year: Optional[int] = None,
     ) -> List[Book]:
         """
         Найти книгу по заголовку, автору или году издания.
 
-        :param title: Заголовок
-        :param author: автор
-        :param year: год издания
-        :return: Список книг подходящих под поисковый критерий или пустой список если нет совпадений.
+        Args:
+            title: Заголовок
+            author: автор
+            year: год издания
+
+        Returns:
+            list[Book]: Список книг подходящих под поисковый критерий или пустой список если нет совпадений.
         """
         return self.repository.search_books(title=title, author=author, year=year)
 
     def list_books(self) -> List[Book]:
         """
-        Отобразить все книги существующие в библиотеке
+        Отобразить все книги существующие в библиотеке.
 
-        :return: Список всех книг
+        Returns:
+            list[Book]: Список всех книг
         """
         return self.repository.list_books()
 
     def set_book_status(self, book_id: int, new_status: str) -> None:
         """
-        Изменить статус книги
+        Изменить статус книги.
 
-        :param book_id: ID книги
-        :param new_status: новый статус для книги, доступные значения "available" или "borrowed"
+        Args:
+            book_id: ID книги
+            new_status: новый статус для книги, доступные значения "available" или "borrowed"
+
+        Raises:
+            BookByIdNotFoundException: если не найдено книги с указанным ID
         """
         book = self.repository.get_book_by_id(book_id)
         if not book:
@@ -82,3 +94,16 @@ class BookService:
 
         book.set_status(new_status)
         self.repository.update_book(book)
+
+    @staticmethod
+    def _generate_unique_id(books: list[Book]) -> int:
+        """
+        Сгенерировать новый уникальный ID на основе уже существующих книг в репозитории.
+
+        Args:
+            books: list[Book] коллекция уже существующих книг
+
+        Returns:
+            int: новый свободный уникальный ID для книги
+        """
+        return max((book.id for book in books), default=0) + 1
