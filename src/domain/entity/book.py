@@ -34,7 +34,7 @@ class Book:
         """
         if new_status not in {'available', 'borrowed'}:
             raise IncorrectBookStatusError(new_status)
-        self.status = new_status
+        self._status = new_status
 
     def __str__(self) -> str:
         """

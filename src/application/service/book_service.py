@@ -31,7 +31,7 @@ class BookService:
         books: list[Book] = self.repository.list_books()
         new_id: int = self._generate_unique_id(books)
 
-        new_book = Book(id=new_id, title=title, author=author, year=year)
+        new_book: Book = Book(id=new_id, title=title, author=author, year=year)
         self.repository.add_book(new_book)
         return new_book
 
@@ -88,11 +88,11 @@ class BookService:
         Raises:
             BookByIdNotFoundException: если не найдено книги с указанным ID
         """
-        book = self.repository.get_book_by_id(book_id)
-        if not book:
+        book: Optional[Book]= self.repository.get_book_by_id(book_id)
+        if book is None:
             raise BookByIdNotFoundError(desired_id=book_id)
 
-        book.set_status(new_status)
+        book.status = new_status
         self.repository.update_book(book)
 
     @staticmethod
