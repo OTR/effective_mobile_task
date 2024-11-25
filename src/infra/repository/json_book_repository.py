@@ -119,11 +119,9 @@ class JsonBookRepository(BaseBookRepository):
 
     def _ensure_file_exists(self) -> None:
         """Проверить существует ли файл по заданному пути, если нет - то создать пустой JSON файл."""
-        try:
+        if not os.path.exists(self.file_path):
             with open(self.file_path, 'w') as file1:
                 json.dump([], file1)
-        except FileExistsError:
-            pass  # noqa: WPS420
 
     def _read_books(self) -> List[Book]:
         """

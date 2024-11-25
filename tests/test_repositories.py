@@ -1,3 +1,4 @@
+import json
 import unittest
 from tempfile import NamedTemporaryFile
 from src.domain.entity import Book
@@ -9,7 +10,9 @@ class TestJsonBookRepository(unittest.TestCase):
 
     def setUp(self) -> None:
         """Создаем временный файл для хранилища книг"""
-        self.temp_file = NamedTemporaryFile(delete=False)
+        self.temp_file = NamedTemporaryFile(delete=False, mode='w')
+        self.temp_file.write(json.dumps([]))
+        self.temp_file.close()
         self.repository: BaseBookRepository = JsonBookRepository(self.temp_file.name)
 
     def tearDown(self) -> None:

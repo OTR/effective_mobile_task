@@ -1,3 +1,4 @@
+import json
 import unittest
 from tempfile import NamedTemporaryFile
 
@@ -14,7 +15,9 @@ class TestBookService(unittest.TestCase):
         Подготовить временный файл для хранения книг на диске.
         Инициализировать необходимые зависимости
         """
-        self.temp_file = NamedTemporaryFile(delete=False)
+        self.temp_file = NamedTemporaryFile(delete=False, mode='w')
+        self.temp_file.write(json.dumps([]))
+        self.temp_file.close()
         self.repository: BaseBookRepository = JsonBookRepository(self.temp_file.name)
         self.service = BookService(self.repository)
 
