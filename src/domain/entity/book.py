@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.exception.exceptions import IncorrectBookStatusException
+from src.exception.exceptions import IncorrectBookStatusError
 
 
 @dataclass
@@ -33,7 +33,7 @@ class Book:
             IncorrectBookStatusException: если переданный статус не валидный
         """
         if new_status not in {'available', 'borrowed'}:
-            raise IncorrectBookStatusException(new_status)
+            raise IncorrectBookStatusError(new_status)
         self.status = new_status
 
     def __str__(self) -> str:

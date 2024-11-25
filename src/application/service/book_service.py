@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from src.domain.entity import Book
 from src.domain.repository import BaseBookRepository
-from src.exception.exceptions import BookByIdNotFoundException
+from src.exception.exceptions import BookByIdNotFoundError
 
 
 class BookService:
@@ -46,7 +46,7 @@ class BookService:
             BookByIdNotFoundException: если не найдено книги с указанным ID
         """
         if not self.repository.get_book_by_id(book_id):
-            raise BookByIdNotFoundException(desired_id=book_id)
+            raise BookByIdNotFoundError(desired_id=book_id)
         self.repository.delete_book_by_id(book_id)
 
     def search_books(
@@ -90,7 +90,7 @@ class BookService:
         """
         book = self.repository.get_book_by_id(book_id)
         if not book:
-            raise BookByIdNotFoundException(desired_id=book_id)
+            raise BookByIdNotFoundError(desired_id=book_id)
 
         book.set_status(new_status)
         self.repository.update_book(book)

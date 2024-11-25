@@ -5,8 +5,8 @@ from typing import Optional
 from src.application.service import BookService
 from src.domain.entity import Book
 from src.domain.repository import BaseBookRepository
-from src.exception import PublishingYearMustBeNumericException, UnexpectedBookException
-from src.exception.exceptions import IncorrectBookIdException, BaseBookException
+from src.exception import PublishingYearMustBeNumericError, UnexpectedBookError
+from src.exception.exceptions import IncorrectBookIdError, BaseBookError
 from src.infra.adapter.menu_option import MenuOption
 from src.infra.config.string_constants import *
 from src.infra.repository import JsonBookRepository
@@ -47,7 +47,7 @@ class CliAdapter:
             except KeyboardInterrupt:
                 print(EXIT_OPTION_MESSAGE)
                 break
-            except BaseBookException as err:
+            except BaseBookError as err:
                 print(err)
                 print(TRY_AGAIN_MESSAGE)
                 continue
@@ -72,9 +72,9 @@ class CliAdapter:
             year: int = int(input_year)
         except ValueError as err:
             if NUMBER_FORMAT_EXCEPTION in str(err):
-                raise PublishingYearMustBeNumericException(given_year=input_year)
+                raise PublishingYearMustBeNumericError(given_year=input_year)
             else:
-                raise UnexpectedBookException(err)
+                raise UnexpectedBookError(err)
 
         book: Book = self.service.add_book(title, author, year)
         print(BOOK_SUCCESSFULLY_ADDED + str(book.id))
@@ -89,9 +89,9 @@ class CliAdapter:
             print(BOOK_SUCCESSFULLY_DELETED)
         except ValueError as err:
             if NUMBER_FORMAT_EXCEPTION in str(err):
-                raise IncorrectBookIdException(given_id=input_book_id)
+                raise IncorrectBookIdError(given_id=input_book_id)
             else:
-                raise UnexpectedBookException(err)
+                raise UnexpectedBookError(err)
 
     def _handle_search_books(self) -> None:
         """Обработка пункта меню: 3. Найти книгу"""
@@ -102,9 +102,9 @@ class CliAdapter:
             year: Optional[int] = int(input_year) if input_year else EMPTY_STRING
         except ValueError as err:
             if NUMBER_FORMAT_EXCEPTION in str(err):
-                raise PublishingYearMustBeNumericException(given_year=input_year)
+                raise PublishingYearMustBeNumericError(given_year=input_year)
             else:
-                raise UnexpectedBookException(err)
+                raise UnexpectedBookError(err)
 
         books: list[Book] = self.service.search_books(title, author, year)
         if books:
@@ -135,9 +135,9 @@ class CliAdapter:
             print(STATUS_SUCCESSFULLY_UPDATED)
         except ValueError as err:
             if NUMBER_FORMAT_EXCEPTION in str(err):
-                raise IncorrectBookIdException(given_id=input_book_id)
+                raise IncorrectBookIdError(given_id=input_book_id)
             else:
-                raise UnexpectedBookException(err)
+                raise UnexpectedBookError(err)
 
     @staticmethod
     def _handle_exit():
